@@ -38,14 +38,32 @@ def draw_side_view_circles(image, side, pose_landmarks, image_width, image_heigh
   ankle = pose_landmarks[mp_pose.PoseLandmark[side.value + "_ANKLE"]]
   for landmark in [ear, shoulder, hip, knee, ankle]:
     cv2.circle(image, (int(landmark.x * image_width) + ear_threshold, int(landmark.y * image_height)), circle_radius, circle_color, thickness)
+  return {
+    "landmarks": {"ear": ear, "shoulder": shoulder, "hip": hip, "knee": knee, "ankle": ankle},
+    "sideView": True,
+    "side": side.value
+  }
 
 def draw_full_view_circles(image, pose_landmarks, image_width, image_height, circle_radius=8, circle_color=(128, 0, 255), thickness=-1):
+  res = {
+    "landmarks": {},
+    "sideView": False
+  }
   for side in list(Side):
     shoulder = pose_landmarks[mp_pose.PoseLandmark[side.value + "_SHOULDER"]]
     hip = pose_landmarks[mp_pose.PoseLandmark[side.value + "_HIP"]]
     knee = pose_landmarks[mp_pose.PoseLandmark[side.value + "_KNEE"]]
     for landmark in [shoulder, hip, knee]:
+      side_val = side.value.lower()
+      if landmark == shoulder:
+        res['landmarks'][side_val + "Shoulder"] = shoulder
+      elif landmark == hip:
+        res['landmarks'][side_val + "Hip"] = hip
+      else:
+        res['landmarks'][side_val + "Knee"] = knee
+
       cv2.circle(image, (int(landmark.x * image_width), int(landmark.y * image_height)), circle_radius, circle_color, thickness)
+  return res
       
 def draw_landmarks_on_image(rgb_image, detection_result):
   pose_landmarks_list = detection_result.pose_landmarks
@@ -72,11 +90,11 @@ def draw_landmarks_on_image(rgb_image, detection_result):
 
   if is_side_view(left_shoulder, right_shoulder):
     side = check_side(nose, left_shoulder)
-    draw_side_view_circles(annotated_image, side, pose_landmarks, image_width, image_height)
+    res = draw_side_view_circles(annotated_image, side, pose_landmarks, image_width, image_height)
   else:
-    draw_full_view_circles(annotated_image, pose_landmarks, image_width, image_height)
+    res = draw_full_view_circles(annotated_image, pose_landmarks, image_width, image_height)
 
-  return annotated_image
+  return annotated_image, res
 
 # STEP 2: Create an PoseLandmarker object.
 base_options = python.BaseOptions(model_asset_path=os.path.dirname(__file__) + model_path)
@@ -85,16 +103,14 @@ options = vision.PoseLandmarkerOptions(
   output_segmentation_masks=True)
 detector = vision.PoseLandmarker.create_from_options(options) 
 
-
 # STEP 3: Load the input image.
-image = mp.Image.create_from_file("img/ex3.jpg") 
-
+image = mp.Image.create_from_file("img/ex1.jpg") 
 
 # STEP 4: Detect pose landmarks from the input image.
 detection_result = detector.detect(image)
 
 # STEP 5: Process the detection result. Visualize and draw circles.
-annotated_image = draw_landmarks_on_image(image.numpy_view(), detection_result)
+annotated_image, res = draw_landmarks_on_image(image.numpy_view(), detection_result)
 cv2.imshow("", cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR)) 
 
 cv2.waitKey(0)
