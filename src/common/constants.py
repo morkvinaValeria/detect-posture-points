@@ -1,0 +1,1 @@
+MODEL_PATH = '/src/utils/pose_landmarker_heavy.task'
