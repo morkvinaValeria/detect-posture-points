@@ -29,13 +29,15 @@ def check_side(nose, left_shoulder):
   return Side.LEFT if nose.x < left_shoulder.x else Side.RIGHT
 
 def draw_side_view_circles(image, side, pose_landmarks, image_width, image_height, circle_radius=8, circle_color=(128, 0, 255), thickness=-1):
+  ear_threshold = 15 if side == Side.LEFT else -15 
+  
   ear = pose_landmarks[mp_pose.PoseLandmark[side.value + "_EAR"]]
   shoulder = pose_landmarks[mp_pose.PoseLandmark[side.value + "_SHOULDER"]]
   hip = pose_landmarks[mp_pose.PoseLandmark[side.value + "_HIP"]]
   knee = pose_landmarks[mp_pose.PoseLandmark[side.value + "_KNEE"]]
   ankle = pose_landmarks[mp_pose.PoseLandmark[side.value + "_ANKLE"]]
   for landmark in [ear, shoulder, hip, knee, ankle]:
-    cv2.circle(image, (int(landmark.x * image_width), int(landmark.y * image_height)), circle_radius, circle_color, thickness)
+    cv2.circle(image, (int(landmark.x * image_width) + ear_threshold, int(landmark.y * image_height)), circle_radius, circle_color, thickness)
 
 def draw_full_view_circles(image, pose_landmarks, image_width, image_height, circle_radius=8, circle_color=(128, 0, 255), thickness=-1):
   for side in list(Side):
