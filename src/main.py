@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 
-from .routers import health, posture_points
+from .routers import health, posture_points, upload
 
 # from core.schemas.prediction import Prediction
 
@@ -21,3 +21,4 @@ app = FastAPI(title="Posture Points Identification API", debug=True,
 
 app.include_router(health.router)
 app.include_router(posture_points.router)
+app.include_router(upload.router)
